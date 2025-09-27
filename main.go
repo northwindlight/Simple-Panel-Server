@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/northwindlight/cputemp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -125,6 +126,12 @@ func main() {
 
 	http.HandleFunc("/sse", sseHandler)
 	logrus.Info("SSE server started at :8080")
+	temp, err := cputemp.GetCPUTemperature()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	fmt.Printf("CPU Temperature: %.1f°C\n", temp)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		logrus.Fatalf("Server failed to start: %v", err)

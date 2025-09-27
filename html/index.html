@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>mangopi</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<div id="面板">
+		<div id="connection">CLOSED</div>
+		<div class="小面板" id="概览">
+			<h4 class="标题">northwind`s mangopi</h4>
+			<p class="描述">运行系统：Debian 10 "buster"</p>
+			<p class="描述">处理器：全志 H616</p>
+			<p class="描述">规格：CORTEX-A53 x 4</p>
+			<p class="描述">物理内存：1GB</p>
+		</div>
+		<div id="监控">
+		<div class="小面板 仪表">
+			<h3>处理器</h3>
+			<div class="circle" id="处理器">
+				<div class="stop" id="处理器角度"></div>
+				<div class="center">
+        <h2 id="处理器参数">0<small>%</small></h2>
+					</div>
+      		</div>
+			<p id="处理器频率">0Mhz</p>
+		</div>
+		<div class="小面板 仪表">
+			<h3>处理器温度</h3>
+			<div class="circle" id="温度">
+				<div class="stop" id="温度角度"></div>
+				<div class="center">
+        <h2 id="温度参数">0<small>℃</small></h2>
+					</div>
+      		</div>
+			<p id="温度描述">温度正常</p>
+		</div>
+		<div class="小面板 仪表">
+			<h3>内存</h3>
+			<div class="circle" id="内存">
+				<div class="stop" id="内存角度"></div>
+				<div class="center">
+        <h2 id="内存参数">0<small>%</small></h2>
+					</div>
+      		</div>
+			<p id="内存空间">0MB / 0MB</p>
+		</div>
+		<div class="小面板 仪表">
+			<h3>存储</h3>
+			<div class="circle" id="存储">
+				<div class="stop" id="存储角度"></div>
+				<div class="center">
+        <h2 id="存储参数">0<small>%</small></h2>
+				</div>
+      		</div>
+			<p id="磁盘空间">0GB / 0GB</p>
+		</div>
+		</div>
+	</div>
+	<script src="script.js"></script>
+</body>
+</html>
