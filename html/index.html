@@ -2,63 +2,180 @@
 <html>
 <head>
 <meta charset="utf-8">
+
 <title>mangopi</title>
-	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="style.css?v=20250613">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-	<div id="面板">
-		<div id="connection">CLOSED</div>
-		<div class="小面板" id="概览">
-			<h4 class="标题">northwind`s mangopi</h4>
-			<p class="描述">运行系统：Debian 10 "buster"</p>
-			<p class="描述">处理器：全志 H616</p>
-			<p class="描述">规格：CORTEX-A53 x 4</p>
-			<p class="描述">物理内存：1GB</p>
-		</div>
-		<div id="监控">
-		<div class="小面板 仪表">
-			<h3>处理器</h3>
-			<div class="circle" id="处理器">
-				<div class="stop" id="处理器角度"></div>
-				<div class="center">
-        <h2 id="处理器参数">0<small>%</small></h2>
-					</div>
-      		</div>
-			<p id="处理器频率">0Mhz</p>
-		</div>
-		<div class="小面板 仪表">
-			<h3>处理器温度</h3>
-			<div class="circle" id="温度">
-				<div class="stop" id="温度角度"></div>
-				<div class="center">
-        <h2 id="温度参数">0<small>℃</small></h2>
-					</div>
-      		</div>
-			<p id="温度描述">温度正常</p>
-		</div>
-		<div class="小面板 仪表">
-			<h3>内存</h3>
-			<div class="circle" id="内存">
-				<div class="stop" id="内存角度"></div>
-				<div class="center">
-        <h2 id="内存参数">0<small>%</small></h2>
-					</div>
-      		</div>
-			<p id="内存空间">0MB / 0MB</p>
-		</div>
-		<div class="小面板 仪表">
-			<h3>存储</h3>
-			<div class="circle" id="存储">
-				<div class="stop" id="存储角度"></div>
-				<div class="center">
-        <h2 id="存储参数">0<small>%</small></h2>
-				</div>
-      		</div>
-			<p id="磁盘空间">0GB / 0GB</p>
-		</div>
-		</div>
-	</div>
-	<script src="script.js"></script>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="logo-icon fas fa-microchip"></i>
+                <h1 class="logo-text">服务器监控系统</h1>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">连接中...</span>
+            </div>
+        </header>
+        
+        <main>
+            <!-- 概览面板 -->
+            <section class="overview-panel">
+                <h2 class="panel-title"><i class="fas fa-server"></i> 系统概览</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <span class="info-label"><i class="fas fa-microchip"></i> 处理器</span>
+                        <span class="info-value" id="sys-cpu">N/A</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label"><i class="fas fa-brain"></i> 规格</span>
+                        <span class="info-value" id="sys-soc">N/A</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label"><i class="fas fas fa-memory"></i> 物理内存</span>
+                        <span class="info-value" id="sys-mem">N/A</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label"><i class="fas fa-hdd"></i> 存储容量</span>
+                        <span class="info-value" id="sys-disk">N/A</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 监控仪表盘 -->
+            <section class="monitoring-panel">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3 class="metric-title">
+                            <div class="metric-icon"><i class="fas fa-microchip"></i></div>
+                            <span>处理器</span>
+                        </h3>
+                        <div class="metric-status normal" id="processorStatus">正常</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="circle" id="cpu">
+                            <div class="stop" id="cpuAngle"></div>
+                            <div class="center">
+                                <h2 id="cpuParams">0<small>%</small></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-footer" id="processorFreq">0 MHz</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3 class="metric-title">
+                            <div class="metric-icon"><i class="fas fa-temperature-high"></i></div>
+                            <span>处理器温度</span>
+                        </h3>
+                        <div class="metric-status normal" id="tempStatus">正常</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="circle" id="temp">
+                            <div class="stop" id="tempAngle"></div>
+                            <div class="center">
+                                <h2 id="tempParams">0<small>℃</small></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-footer" id="tempDesc">温度正常</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3 class="metric-title">
+                            <div class="metric-icon"><i class="fas fa-memory"></i></div>
+                            <span>内存</span>
+                        </h3>
+                        <div class="metric-status normal" id="memStatus">正常</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="circle" id="mem">
+                            <div class="stop" id="memAngle"></div>
+                            <div class="center">
+                                <h2 id="memParams">0<small>%</small></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-footer" id="memSpace">0MB / 0MB</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <h3 class="metric-title">
+                            <div class="metric-icon"><i class="fas fa-hdd"></i></div>
+                            <span>存储</span>
+                        </h3>
+                        <div class="metric-status normal" id="diskStatus">正常</div>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="circle" id="disk">
+                            <div class="stop" id="diskAngle"></div>
+                            <div class="center">
+                                <h2 id="diskParams">0<small>%</small></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-footer" id="diskSpace">0GB / 0GB</div>
+                </div>
+            </section>
+            
+            <!-- 实时数据图表 -->
+            <section class="chart-container">
+                <h2 class="chart-title"><i class="fas fa-chart-line"></i> 实时资源监控</h2>
+                    <div class="chart-grid">
+                        <div class="chart-wrapper">
+                            <div class="chart" id="cpu-chart"></div>
+                            <div class="chart-label">CPU使用率</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart" id="temp-chart"></div>
+                            <div class="chart-label">温度 (℃)</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart" id="mem-chart"></div>
+                            <div class="chart-label">内存使用率</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <div class="chart" id="disk-chart"></div>
+                            <div class="chart-label">磁盘使用率</div>
+                        </div>
+                    </div>
+            </section>
+            
+            <!-- 系统信息面板 -->
+            <section class="system-info">
+                <h2 class="panel-title"><i class="fas fa-info-circle"></i> 系统信息</h2>
+                <div class="system-grid">
+                    <div class="system-card">
+                        <h3 class="system-card-title"><i class="fas fa-desktop"></i> 操作系统</h3>
+                        <div class="system-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">系统名称</span>
+                                <span id="sys-name">N/A</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">运行时间</span>
+                                <span id="sys-uptime">N/A</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">内核版本</span>
+                                <span id="sys-kernel">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <button class="refresh-btn" id="refreshBtn">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+	<script src="script.js?v=202506134"></script>
 </body>
 </html>

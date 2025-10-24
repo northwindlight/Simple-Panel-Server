@@ -1,140 +1,336 @@
-var ws = new WebSocket('ws://192.168.175.107:60000');
-var 处理器=document.getElementById("处理器");
-var 温度=document.getElementById("温度");
-var 内存=document.getElementById("内存");
-var 存储=document.getElementById("存储");
-var 处理器参数=document.getElementById("处理器参数");
-var 温度参数=document.getElementById("温度参数");
-var 内存参数=document.getElementById("内存参数");
-var 存储参数=document.getElementById("存储参数");
-var 处理器角度=document.getElementById("处理器角度");
-var 温度角度=document.getElementById("温度角度");
-var 内存角度=document.getElementById("内存角度");
-var 存储角度 = document.getElementById("存储角度");
-var 处理器频率 = document.getElementById("处理器频率");
-var 温度描述 = document.getElementById("温度描述");
-var 内存空间 = document.getElementById("内存空间");
-var 磁盘空间 = document.getElementById("磁盘空间");
-var connection = document.getElementById("connection");
-var repeat = setInterval(ask, 8000);
-var result = [];
-const 百分号 = "<small>%</small>";
-var 处理器数据 = 0;
-var 温度数据 = 0;
-var 内存数据 = 0;
-var 存储数据 = 0;
-var lasti = 0;
-var lastj = 0;
-var lastk = 0;
-var lastl = 0;
-function tempd(x) {
-	if (x > 60) {
-		return "温度较高";
-	}
-	else return "温度正常";
-}
-    function loop() {
-        处理器参数.innerHTML = parseInt(处理器数据 / 100) + 百分号;
-		温度参数.innerHTML = parseInt(温度数据 / 100) + "<small>℃</small>";
-		内存参数.innerHTML = parseInt(内存数据 / 100) + 百分号;
-		存储参数.innerHTML = parseInt(存储数据 / 100) + 百分号;
-        let a = 处理器数据 * 0.036;
-		let b = 温度数据 * 0.036;
-		let c = 内存数据 * 0.036;
-		let d = 存储数据 * 0.036;
-        处理器.style.background = `conic-gradient(#1E40AE 0deg, #1E40AE ${a}deg, #E2E8F0 ${a}deg, #E2E8F0 360deg)`;
-        处理器角度.style.transform = `rotate(${a}deg)`;
-		温度.style.background = `conic-gradient(#1E40AE 0deg, #1E40AE ${b}deg, #E2E8F0 ${b}deg, #E2E8F0 360deg)`;
-        温度角度.style.transform = `rotate(${b}deg)`;
-		内存.style.background = `conic-gradient(#1E40AE 0deg, #1E40AE ${c}deg, #E2E8F0 ${c}deg, #E2E8F0 360deg)`;
-        内存角度.style.transform = `rotate(${c}deg)`;
-		存储.style.background = `conic-gradient(#1E40AE 0deg, #1E40AE ${d}deg, #E2E8F0 ${d}deg, #E2E8F0 360deg)`;
-        存储角度.style.transform = `rotate(${d}deg)`;
-		if (处理器数据 != result[0] * 100)
-			{
-				处理器数据+=i ;
-			}
-		if (温度数据 != result[1] * 100)
-			{
-				温度数据+=j;
-			}
-		if (内存数据 != result[2] * 100)
-			{
-				内存数据+=k;
-			}
-		if (存储数据 != result[3] * 100)
-			{
-				存储数据+=l;
-			}
-            window.requestAnimationFrame(loop);
-		return;
+// Updated script.js (only SystemInfoManager section modified; rest unchanged)
+// MonitorSystem - Modular refactor: Connection/Data/UI managers, fixed bugs (URLs, adaptation, duplicates, thresholds, tempDesc)
+const MonitorSystem = (() => {
+    // Constants
+    const UNITS = {
+        cpu: { suffix: '<small>%</small>', max: 100, factor: 3.6, threshold: { high: 80, danger: 90 } },
+        temp: { suffix: '<small>℃</small>', max: 100, factor: 3.6, threshold: { high: 65, danger: 75 } },
+        mem: { suffix: '<small>%</small>', max: 100, factor: 3.6, threshold: { high: 80, danger: 90 } },
+        disk: { suffix: '<small>%</small>', max: 100, factor: 3.6, threshold: { high: 80, danger: 90 } }
+    };
+
+    const SSE_ENDPOINT = 'http://127.0.0.1:8080/sse'; // Fixed: local
+    const INFO_ENDPOINT = 'http://127.0.0.1:8080/info';
+    const CHART_POINTS = 20;
+    const ANIMATION_FRAMES = 60;
+
+    // DOM Cache
+    const elements = {};
+    const infoElements = {};
+    function cacheElements() {
+        const domMap = {
+            cpu: 'cpu', temp: 'temp', mem: 'mem', disk: 'disk',
+            cpuParams: 'cpuParams', tempParams: 'tempParams', memParams: 'memParams', diskParams: 'diskParams',
+            cpuAngle: 'cpuAngle', tempAngle: 'tempAngle', memAngle: 'memAngle', diskAngle: 'diskAngle',
+            processorFreq: 'processorFreq', tempDesc: 'tempDesc', memSpace: 'memSpace', diskSpace: 'diskSpace',
+            connectionStatus: 'connectionStatus', connectionText: 'connectionText',
+            processorStatus: 'processorStatus', tempStatus: 'tempStatus', memStatus: 'memStatus', diskStatus: 'diskStatus',
+            cpuChart: 'cpu-chart', tempChart: 'temp-chart', memChart: 'mem-chart', diskChart: 'disk-chart',
+            refreshBtn: 'refreshBtn'
+        };
+        Object.entries(domMap).forEach(([key, id]) => elements[key] = document.getElementById(id));
+
+        const infoMap = {
+            sysName: 'sys-name', sysUptime: 'sys-uptime', sysKernel: 'sys-kernel',
+            sysCpu: 'sys-cpu', sysSoc: 'sys-soc', sysMem: 'sys-mem', sysDisk: 'sys-disk'
+        };
+        Object.entries(infoMap).forEach(([key, id]) => infoElements[key] = document.getElementById(id));
     }
-ws.addEventListener('open', function (event) {
 
-	setTimeout(function() {
-  // 这里是延迟执行的代码
-		connection.innerHTML = "CONNECTED"; 
-}, 400);
-		connection.style.backgroundColor = "green";
-		connection.style.width = "120px";
-    ws.send('Ask message!');
-});
+    // State
+    const state = {
+        data: { cpu: 0, temp: 0, mem: 0, disk: 0 },
+        current: { cpu: 0, temp: 0, mem: 0, disk: 0 },
+        steps: { cpu: 0, temp: 0, mem: 0, disk: 0 },
+        source: null,
+        chartData: { cpu: Array(CHART_POINTS).fill(0), temp: Array(CHART_POINTS).fill(0), mem: Array(CHART_POINTS).fill(0), disk: Array(CHART_POINTS).fill(0) }
+    };
 
-// 监听动态 数据
-ws.addEventListener('message', function (event) {
-	str = event.data;
-	console.log(str);
-	result = [];
-	处理器数据 = lasti;
-	温度数据 = lastj;
-	内存数据 = lastk;
-	存储数据 = lastl;
-	for (var z = 0; z < str.length; z += 3) {
-		if (z + 2 >= str.length) {
-			break; // 如果已经到达最后两位了，就不再切割了
-		}
-		result.push(parseInt(str.slice(z, z + 3),10)); 
-	}
-	console.log(result);
-	i = (result[0] * 100 - 处理器数据) / 100;
-	j = (result[1] * 100 - 温度数据) / 100;
-	k = (result[2] * 100 - 内存数据) / 100;
-	l = (result[3] * 100 - 存储数据) / 100;
-	lasti = result[0] * 100;
-	lastj = result[1] * 100;
-	lastk = result[2] * 100;
-	lastl = result[3] * 100;
-	setTimeout(function () {
-		// 这里是延迟执行的代码
-		处理器频率.innerHTML = result[4] + "Mhz";
-		温度描述.innerHTML = tempd(result[1]);
-		内存空间.innerHTML = result[6] + "MB / " + result[5] + "MB";
-		磁盘空间.innerHTML = result[8] + "GB / " + result[7] + "GB";
-	}, 450);
-	loop()
+    const systemInfo = {
+        startTime: Date.now(), // Will be set based on fetched uptime
+        uptimeInterval: null
+    };
 
-});
+    // Data Adapter
+    class DataAdapter {
+        static adapt(rawData) {
+            if (!rawData) return null;
+            return {
+                cpu: rawData.cpu_usage || 0,
+                temp: rawData.temperature || 0,
+                mem: rawData.memory_usage || 0,
+                disk: rawData.storage_usage || 0,
+                freq: rawData.cpu_frequency || 0,
+                mem_used: rawData.memory_used || 0,
+                mem_total: rawData.memory_total || 0,
+                disk_used: rawData.storage_used || 0,
+                disk_total: rawData.storage_total || 0
+            };
+        }
 
+        static getStatusConfig(key, value) {
+            const thresholds = UNITS[key].threshold;
+            if (value > thresholds.danger) return { text: '危险', class: 'danger' };
+            if (value > thresholds.high) {
+                let text = '高负载';
+                if (key === 'temp') text = '高温';
+                else if (key === 'mem' || key === 'disk') text = '高使用率';
+                return { text, class: 'high' };
+            }
+            return { text: '正常', class: 'normal' };
+        }
+    }
 
-ws.addEventListener("close", function(event) {
-	setTimeout(function() {
-  // 这里是延迟执行的代码
-		connection.innerHTML = "CLOSED"; 
-}, 300);
-		connection.style.backgroundColor = "red";
-		connection.style.width = "80px";
-		clearInterval(repeat);	
-		console.log("closed");
-  // handle close event
-});
+    // Connection Manager
+    class ConnectionManager {
+        constructor() { this.source = null; }
 
+        connect() {
+            if (this.source) this.source.close();
+            this.source = new EventSource(SSE_ENDPOINT);
 
-function ask(){
-	if(ws.readyState == WebSocket.OPEN){
-		ws.send('Hello Server!');
-		console.log("again");
-		return;
-}
-}
+            this.source.onopen = () => UIManager.setConnectionStatus(true);
 
+            this.source.addEventListener('update', (event) => {
+                try {
+                    const rawData = JSON.parse(event.data);
+                    const adapted = DataAdapter.adapt(rawData);
+                    if (adapted) StateManager.updateState(adapted);
+                } catch (e) {
+                    console.error("Data parsing error:", e);
+                }
+            });
 
+            this.source.onerror = () => {
+                UIManager.setConnectionStatus(false);
+                this.source.close();
+                setTimeout(() => this.connect(), 3000);
+            };
+        }
+
+        disconnect() { if (this.source) this.source.close(); }
+    }
+
+    // State Manager
+    const StateManager = {
+        updateState(adapted) {
+            state.data.cpu = adapted.cpu;
+            state.data.temp = adapted.temp;
+            state.data.mem = adapted.mem;
+            state.data.disk = adapted.disk;
+
+            // Update chart data (fixed: add historical shift/push)
+            state.chartData.cpu.shift(); state.chartData.cpu.push(adapted.cpu);
+            state.chartData.temp.shift(); state.chartData.temp.push(adapted.temp);
+            state.chartData.mem.shift(); state.chartData.mem.push(adapted.mem);
+            state.chartData.disk.shift(); state.chartData.disk.push(adapted.disk);
+
+            // Update text (direct backend units)
+            if (elements.processorFreq) elements.processorFreq.textContent = `${adapted.freq} MHz`;
+            if (elements.memSpace) elements.memSpace.textContent = `${adapted.mem_used} MB / ${adapted.mem_total} MB`;
+            if (elements.diskSpace) elements.diskSpace.textContent = `${adapted.disk_used.toFixed(1)} GB / ${adapted.disk_total.toFixed(1)} GB`;
+
+            // Calc steps
+            state.steps.cpu = (state.data.cpu - state.current.cpu) / ANIMATION_FRAMES;
+            state.steps.temp = (state.data.temp - state.current.temp) / ANIMATION_FRAMES;
+            state.steps.mem = (state.data.mem - state.current.mem) / ANIMATION_FRAMES;
+            state.steps.disk = (state.data.disk - state.current.disk) / ANIMATION_FRAMES;
+
+            // Trigger UI
+            UIManager.updateUI();
+            ChartManager.updateCharts();
+        }
+    };
+
+    // UI Manager
+    const UIManager = {
+        setConnectionStatus(connected) {
+            elements.connectionText.innerHTML = connected ? "已连接" : "连接断开";
+            elements.connectionStatus.classList.toggle("connected", connected);
+            elements.connectionStatus.classList.toggle("pulse", connected);
+        },
+
+        updateUI() {
+            this.animateGauges();
+            this.updateStatus();
+            this.updateTempDesc();
+        },
+
+        animateGauges() {
+            const animate = () => {
+                let complete = true;
+                const keys = ['cpu', 'temp', 'mem', 'disk'];
+
+                keys.forEach(key => {
+                    const target = state.data[key];
+                    const diff = target - state.current[key];
+                    if (Math.abs(diff) > 0.5) {
+                        state.current[key] += state.steps[key];
+                        complete = false;
+                    } else {
+                        state.current[key] = target;
+                    }
+                    this.renderGauge(key, state.current[key]);
+                });
+
+                if (!complete) requestAnimationFrame(animate);
+            };
+
+            requestAnimationFrame(animate);
+        },
+
+        renderGauge(key, value) {
+            const config = UNITS[key];
+            const clamped = Math.max(0, Math.min(value, config.max));
+            const deg = clamped * config.factor;
+            const percentage = Math.round(clamped);
+
+            // Fixed: add comma in conic-gradient syntax
+            elements[key].style.background = `conic-gradient(var(--primary) 0deg, var(--primary) ${deg}deg, var(--card-bg) ${deg}deg, var(--card-bg) 360deg)`;
+
+            // Fixed: remove -90 offset to match original alignment
+            elements[`${key}Angle`].style.transform = `rotate(${deg}deg)`;
+
+            elements[`${key}Params`].innerHTML = `${percentage}${config.suffix}`;
+        },
+
+        updateStatus() {
+            const keys = ['cpu', 'temp', 'mem', 'disk'];
+            keys.forEach(key => {
+                const statusEl = elements[`${key}Status`];
+                if (!statusEl) return;
+                const value = state.data[key];
+                const { text, class: cls } = DataAdapter.getStatusConfig(key, value);
+                statusEl.textContent = text;
+                statusEl.className = `metric-status ${cls}`;
+            });
+        },
+
+        updateTempDesc() {
+            if (!elements.tempDesc) return;
+            const temp = state.data.temp;
+            if (temp > 70) {
+                elements.tempDesc.textContent = "温度过高!"; elements.tempDesc.style.color = "var(--danger)";
+            } else if (temp > 60) {
+                elements.tempDesc.textContent = "温度升高"; elements.tempDesc.style.color = "var(--warning)";
+            } else {
+                elements.tempDesc.textContent = "温度正常"; elements.tempDesc.style.color = "var(--text-secondary)";
+            }
+        }
+    };
+
+    // Chart Manager
+    const ChartManager = {
+        updateCharts() {
+            this.updateChart(elements.cpuChart, state.chartData.cpu);
+            this.updateChart(elements.tempChart, state.chartData.temp);
+            this.updateChart(elements.memChart, state.chartData.mem);
+            this.updateChart(elements.diskChart, state.chartData.disk);
+        },
+
+        updateChart(chartElement, data) {
+            if (!chartElement) return;
+            chartElement.innerHTML = '';
+            const MAX_VALUE = 100;
+            for (let i = 0; i < data.length; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const height = Math.min(data[i], MAX_VALUE);
+                bar.style.height = `${height}%`;
+                bar.style.background = data[i] > 90 ? "var(--danger)" : data[i] > 80 ? "var(--warning)" : "var(--primary)";
+                chartElement.appendChild(bar);
+            }
+        }
+    };
+
+    // System Info Manager
+    const SystemInfoManager = {
+        fetchSystemInfo() {
+            fetch(INFO_ENDPOINT)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update DOM elements
+                    if (infoElements.sysName) infoElements.sysName.textContent = `${data.os} ${data.platform}`;
+                    if (infoElements.sysKernel) infoElements.sysKernel.textContent = data.kernel;
+                    if (infoElements.sysCpu) infoElements.sysCpu.textContent = data.cpu_model;
+                    if (infoElements.sysSoc) infoElements.sysSoc.textContent = data.cpu_specs;
+                    if (infoElements.sysMem) infoElements.sysMem.textContent = `${Math.round(data.mem_total_gb)} GB`;
+                    if (infoElements.sysDisk) infoElements.sysDisk.textContent = `${Math.round(data.disk_total_gb)} GB`;
+
+                    // Set boot time for uptime calculation
+                    systemInfo.startTime = Date.now() - (data.uptime_seconds * 1000);
+
+                    // Start uptime counter
+                    this.startUptimeCounter();
+                })
+                .catch(err => {
+                    console.error('Failed to fetch system info:', err);
+                    // Fallback to N/A
+                    Object.values(infoElements).forEach(el => el.textContent = "N/A");
+                });
+        },
+
+        updateUptimeDisplay() {
+            const totalSeconds = Math.floor((Date.now() - systemInfo.startTime) / 1000);
+            const days = Math.floor(totalSeconds / (3600 * 24));
+            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            if (infoElements.sysUptime) {
+                infoElements.sysUptime.textContent = `${days}天 ${hours}小时 ${minutes}分`;
+            }
+        },
+
+        startUptimeCounter() {
+            if (systemInfo.uptimeInterval) clearInterval(systemInfo.uptimeInterval);
+            systemInfo.uptimeInterval = setInterval(() => this.updateUptimeDisplay(), 1000);
+            this.updateUptimeDisplay();
+        }
+    };
+
+    // Refresh Manager
+    const RefreshManager = {
+        setup() {
+            if (!elements.refreshBtn) return;
+            elements.refreshBtn.addEventListener('click', () => {
+                elements.refreshBtn.style.transition = 'transform 0.5s ease';
+                elements.refreshBtn.style.transform = 'rotate(360deg)';
+                setTimeout(() => elements.refreshBtn.style.transform = 'rotate(0deg)', 500);
+                
+                const rawMock = {
+                    cpu_usage: Math.random() * 100,
+                    temperature: Math.random() * 70 + 30,
+                    memory_usage: Math.random() * 100,
+                    storage_usage: Math.random() * 100,
+                    cpu_frequency: Math.floor(Math.random() * 500) + 800,
+                    memory_used: Math.floor(Math.random() * 800) + 200,
+                    memory_total: 1000,
+                    storage_used: Math.floor(Math.random() * 25) + 7,
+                    storage_total: 32
+                };
+                const adapted = DataAdapter.adapt(rawMock);
+                StateManager.updateState(adapted);
+            });
+        }
+    };
+
+    // Init
+    function init() {
+        cacheElements();
+        SystemInfoManager.fetchSystemInfo();
+        const connectionManager = new ConnectionManager();
+        connectionManager.connect();
+        ChartManager.updateCharts();
+        RefreshManager.setup();
+        window.connectionManager = connectionManager; // Debug
+    }
+
+    return { init };
+})();
+
+window.addEventListener('DOMContentLoaded', MonitorSystem.init);
+window.addEventListener('beforeunload', () => window.connectionManager?.disconnect());
