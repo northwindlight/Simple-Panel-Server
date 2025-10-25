@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func GetCPUFreq() (int, error) {
@@ -18,7 +19,8 @@ func GetCPUFreq() (int, error) {
 	if len(data) == 0 {
 		return 0, errors.New("Linux CPU频率文件为空")
 	}
-	rawdata, _ := strconv.Atoi(string(data))
+	str := strings.TrimSpace(string(data))
+	rawdata, err := strconv.Atoi(str)
 	if err != nil {
 		return 0, fmt.Errorf("解析Linux CPU频率失败: %w", err)
 	}

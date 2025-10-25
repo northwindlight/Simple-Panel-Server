@@ -48,7 +48,10 @@ func getCPUUsage() int {
 }
 
 func getCPUTemperature() int {
-	temp, _ := cputemp.GetCPUTemperature()
+	temp, err := cputemp.GetCPUTemperature()
+	if err != nil {
+		logrus.Error(err)
+	}
 	return int(temp)
 }
 
@@ -175,7 +178,10 @@ func generateSystemStatus() SystemStatus {
 	StorageUsage := TotalDiskInfo.UsagePercent
 	StorageTotal := TotalDiskInfo.TotalGB
 	StorageUsed := TotalDiskInfo.UsedGB
-	CPUFrequency, _ := GetCPUFreq()
+	CPUFrequency, err := GetCPUFreq()
+	if err != nil {
+		logrus.Error(err)
+	}
 	return SystemStatus{
 		CPUUsage,     // 0-100%
 		Temperature,  // 30-80°C
