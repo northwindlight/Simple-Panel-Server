@@ -156,7 +156,7 @@ func GetSystemInfo() (SystemInfo, error) {
 	diskTotalGB := diskInfo.TotalGB
 
 	return SystemInfo{
-		OS:            osInfo.OS,
+		OS:            osInfo.Platform,
 		Platform:      osInfo.PlatformVersion,
 		Kernel:        kernel,
 		UptimeSeconds: uptime,
@@ -168,8 +168,14 @@ func GetSystemInfo() (SystemInfo, error) {
 }
 
 func generateSystemStatus() SystemStatus {
-	TotalDiskInfo, _ := GetTotalDiskUsage()
-	MemoryInfo, _ := getMemoryUsage()
+	TotalDiskInfo, err := GetTotalDiskUsage()
+	if err != nil {
+		logrus.Error(err)
+	}
+	MemoryInfo, err := getMemoryUsage()
+	if err != nil {
+		logrus.Error(err)
+	}
 	CPUUsage := getCPUUsage()
 	Temperature := getCPUTemperature()
 	MemoryUsage := MemoryInfo.UsagePercent
