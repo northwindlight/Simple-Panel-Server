@@ -39,6 +39,19 @@ type SystemInfo struct {
 	DiskTotalGB   float64 `json:"disk_total_gb"`
 }
 
+// 定义系统状态数据结构
+type SystemStatus struct {
+	CPUUsage     int     `json:"cpu_usage"`
+	Temperature  int     `json:"temperature"`
+	MemoryUsage  int     `json:"memory_usage"`
+	StorageUsage int     `json:"storage_usage"`
+	CPUFrequency int     `json:"cpu_frequency"`
+	MemoryTotal  int     `json:"memory_total"`
+	MemoryUsed   int     `json:"memory_used"`
+	StorageTotal float64 `json:"storage_total"`
+	StorageUsed  float64 `json:"storage_used"`
+}
+
 func getCPUUsage() int {
 	usage, _ := cpu.Percent(2*time.Second, false)
 	if len(usage) > 0 {
@@ -79,7 +92,7 @@ func GetTotalDiskUsage() (TotalDiskInfo, error) {
 	for _, p := range partitions {
 		usage, err := disk.Usage(p.Mountpoint)
 		if err != nil {
-			logrus.Error("failed to get usage for %s: %v", p.Mountpoint, err)
+			logrus.Errorf("failed to get usage for %s: %v", p.Mountpoint, err)
 			continue // 跳过错误的分区
 		}
 

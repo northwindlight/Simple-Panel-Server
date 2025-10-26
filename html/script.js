@@ -9,8 +9,8 @@ const MonitorSystem = (() => {
         disk: { suffix: '<small>%</small>', max: 100, factor: 3.6, threshold: { high: 80, danger: 90 } }
     };
 
-    const SSE_ENDPOINT = 'http://127.0.0.1:8080/sse'; // Fixed: local
-    const INFO_ENDPOINT = 'http://127.0.0.1:8080/info';
+    const SSE_ENDPOINT = '/sse'; 
+    const INFO_ENDPOINT = '/info';
     const CHART_POINTS = 20;
     const ANIMATION_FRAMES = 60;
 

@@ -30,19 +30,6 @@ type Config struct {
 // 全局配置变量
 var config Config
 
-// 定义系统状态数据结构
-type SystemStatus struct {
-	CPUUsage     int     `json:"cpu_usage"`
-	Temperature  int     `json:"temperature"`
-	MemoryUsage  int     `json:"memory_usage"`
-	StorageUsage int     `json:"storage_usage"`
-	CPUFrequency int     `json:"cpu_frequency"`
-	MemoryTotal  int     `json:"memory_total"`
-	MemoryUsed   int     `json:"memory_used"`
-	StorageTotal float64 `json:"storage_total"`
-	StorageUsed  float64 `json:"storage_used"`
-}
-
 // Client 表示一个SSE客户端连接
 type Client struct {
 	id      string
@@ -264,6 +251,12 @@ func startBroadcaster() {
 }
 
 func main() {
+	//检查权限
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors: true, // 强制颜色输出
+	})
+
+	isAdmin()
 	// 加载配置文件
 	configPath := "config.yaml"
 	if err := loadConfig(configPath); err != nil {
