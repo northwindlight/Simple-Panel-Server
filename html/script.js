@@ -126,9 +126,14 @@ const MonitorSystem = (() => {
             state.chartData.disk.shift(); state.chartData.disk.push(adapted.disk);
 
             // Update text (direct backend units)
-            if (elements.processorFreq) elements.processorFreq.textContent = `${adapted.freq} MHz`;
-            if (elements.memSpace) elements.memSpace.textContent = `${adapted.mem_used} MB / ${adapted.mem_total} MB`;
-            if (elements.diskSpace) elements.diskSpace.textContent = `${adapted.disk_used.toFixed(1)} GB / ${adapted.disk_total.toFixed(1)} GB`;
+            elements.processorFreq.textContent = `${adapted.freq} MHz`;
+            elements.memSpace.textContent = `${adapted.mem_used} MB / ${adapted.mem_total} MB`;
+            if (adapted.disk_total > 1024)
+            {
+                elements.diskSpace.textContent = `${(adapted.disk_used / 1024).toFixed(1)} GB / ${(adapted.disk_total / 1024).toFixed(1)} GB`;
+            } else {
+                elements.diskSpace.textContent = `${adapted.disk_used} MB / ${adapted.disk_total} MB`;
+            }
 
             // Calc steps
             state.steps.cpu = (state.data.cpu - state.current.cpu) / ANIMATION_FRAMES;
@@ -255,12 +260,20 @@ const MonitorSystem = (() => {
                 })
                 .then(data => {
                     // Update DOM elements
-                    if (infoElements.sysName) infoElements.sysName.textContent = `${data.os} ${data.platform}`;
-                    if (infoElements.sysKernel) infoElements.sysKernel.textContent = data.kernel;
-                    if (infoElements.sysCpu) infoElements.sysCpu.textContent = data.cpu_model;
-                    if (infoElements.sysSoc) infoElements.sysSoc.textContent = data.cpu_specs;
-                    if (infoElements.sysMem) infoElements.sysMem.textContent = `${Math.round(data.mem_total_gb)} GB`;
-                    if (infoElements.sysDisk) infoElements.sysDisk.textContent = `${Math.round(data.disk_total_gb)} GB`;
+                    infoElements.sysName.textContent = `${data.os} ${data.platform}`;
+                    infoElements.sysKernel.textContent = data.kernel;
+                    infoElements.sysCpu.textContent = data.cpu_model;
+                    infoElements.sysSoc.textContent = data.cpu_specs;
+                    if (data.mem_total_mb > 1024) {
+                        infoElements.sysMem.textContent = `${Math.round(data.mem_total_mb / 1024)} GB`;
+                    } else {
+                        infoElements.sysMem.textContent = `${Math.round(data.mem_total_mb)} MB`;
+                    }
+                    if (data.disk_total_mb > 1024) {
+                        infoElements.sysDisk.textContent = `${Math.round(data.disk_total_mb / 1024)} GB`;
+                    } else {
+                        infoElements.sysDisk.textContent = `${Math.round(data.disk_total_mb)} MB`;
+                    }
 
                     // Set boot time for uptime calculation
                     systemInfo.startTime = Date.now() - (data.uptime_seconds * 1000);

@@ -14,7 +14,7 @@ func GetCPUFreq() (int, error) {
 		return 0, err
 	}
 	if len(infos) == 0 {
-		return 0, errors.New("无法获取CPU信息")
+		return 0, errors.New("Failed to get CPU frequency.")
 	}
 	// 返回第一个作为主CPU的频率
 	return int(infos[0].Mhz), nil

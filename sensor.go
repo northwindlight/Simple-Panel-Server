@@ -16,8 +16,8 @@ import (
 
 type TotalDiskInfo struct {
 	MountPoint   string
-	TotalGB      float64
-	UsedGB       float64
+	TotalMB      float64
+	UsedMB       float64
 	UsagePercent int
 }
 
@@ -35,8 +35,8 @@ type SystemInfo struct {
 	UptimeSeconds uint64  `json:"uptime_seconds"`
 	CPUModel      string  `json:"cpu_model"`
 	CPUSpecs      string  `json:"cpu_specs"` // e.g., "4 Cores / 8 Threads"
-	MemTotalGB    float64 `json:"mem_total_gb"`
-	DiskTotalGB   float64 `json:"disk_total_gb"`
+	MemTotalMB    float64 `json:"mem_total_mb"`
+	DiskTotalMB   float64 `json:"disk_total_mb"`
 }
 
 // 定义系统状态数据结构
@@ -87,7 +87,6 @@ func GetTotalDiskUsage() (TotalDiskInfo, error) {
 	}
 
 	var totalTotal, totalUsed uint64
-	const gb = 1024 * 1024 * 1024 // 1 GB = 1024^3 bytes
 
 	for _, p := range partitions {
 		usage, err := disk.Usage(p.Mountpoint)
@@ -104,13 +103,13 @@ func GetTotalDiskUsage() (TotalDiskInfo, error) {
 		return TotalDiskInfo{}, fmt.Errorf("no valid disk data found")
 	}
 
-	totalGB := float64(totalTotal) / float64(gb)
-	usedGB := float64(totalUsed) / float64(gb)
+	totalMB := float64(totalTotal) / 1024 / 1024
+	usedMB := float64(totalUsed) / 1024 / 1024
 	usagePercent := int((float64(totalUsed) / float64(totalTotal)) * 100)
 
 	return TotalDiskInfo{
-		TotalGB:      totalGB,
-		UsedGB:       usedGB,
+		TotalMB:      totalMB,
+		UsedMB:       usedMB,
 		UsagePercent: usagePercent,
 	}, nil
 }
@@ -159,14 +158,14 @@ func GetSystemInfo() (SystemInfo, error) {
 	if err != nil {
 		return SystemInfo{}, fmt.Errorf("failed to get memory info: %v", err)
 	}
-	memTotalGB := float64(memInfo.Total) / 1024 / 1024 / 1024
+	memTotalMB := float64(memInfo.Total) / 1024 / 1024
 
 	// Disk
 	diskInfo, err := GetTotalDiskUsage()
 	if err != nil {
 		return SystemInfo{}, fmt.Errorf("failed to get disk info: %v", err)
 	}
-	diskTotalGB := diskInfo.TotalGB
+	diskTotalMB := diskInfo.TotalMB
 
 	return SystemInfo{
 		OS:            osInfo.Platform,
@@ -175,8 +174,8 @@ func GetSystemInfo() (SystemInfo, error) {
 		UptimeSeconds: uptime,
 		CPUModel:      cpuModel,
 		CPUSpecs:      cpuSpecs,
-		MemTotalGB:    memTotalGB,
-		DiskTotalGB:   diskTotalGB,
+		MemTotalMB:    memTotalMB,
+		DiskTotalMB:   diskTotalMB,
 	}, nil
 }
 
@@ -195,8 +194,8 @@ func generateSystemStatus() SystemStatus {
 	MemoryTotal := MemoryInfo.TotalMB
 	MemoryUsed := MemoryInfo.UsedMB
 	StorageUsage := TotalDiskInfo.UsagePercent
-	StorageTotal := TotalDiskInfo.TotalGB
-	StorageUsed := TotalDiskInfo.UsedGB
+	StorageTotal := TotalDiskInfo.TotalMB
+	StorageUsed := TotalDiskInfo.UsedMB
 	CPUFrequency, err := GetCPUFreq()
 	if err != nil {
 		logrus.Error(err)
@@ -207,7 +206,7 @@ func generateSystemStatus() SystemStatus {
 		MemoryUsage,  // 0-100%
 		StorageUsage, // 0-100%
 		CPUFrequency, // 2000-4000 MHz
-		MemoryTotal,  // 8GB
+		MemoryTotal,  // 8192 MB
 		MemoryUsed,   // 0-8192 MB
 		StorageTotal, // 500GB
 		StorageUsed,  // 0-500 GB

@@ -11,8 +11,8 @@ import (
 )
 
 func GetCPUFreq() (int, error) {
-	path := "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
-	data, err := os.ReadFile(path)
+	curFreqPath := "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
+	data, err := os.ReadFile(curFreqPath)
 	if err != nil {
 		return 0, fmt.Errorf("读取Linux CPU频率文件失败: %w", err)
 	}

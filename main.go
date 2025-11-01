@@ -162,7 +162,6 @@ func startWebServer() {
 	}
 
 	logrus.Infof("Web server enabled, static files from %s (using server host/port)", config.WebServer.HTMLDir)
-	// 注意：实际文件服务在 main() 的 mux 中挂载，无需单独 ListenAndServe
 }
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
