@@ -14,6 +14,6 @@ go build -o panel .
 ./panel
 ```
 
-自动创建 config.yaml 和 ./html/。
+自动创建 config.yaml。
 Windows：以管理员运行（读温度/频率）。
 Linux：普通用户即可。
