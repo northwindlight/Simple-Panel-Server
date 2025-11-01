@@ -11,7 +11,7 @@ go build -o panel .
 
 运行：
 ```shell
-text./panel
+./panel
 ```
 
 自动创建 config.yaml 和 ./html/。
