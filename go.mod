@@ -3,6 +3,7 @@ module github.com/northwindlight/Simple-Panel-Server
 go 1.25.1
 
 require (
+	github.com/kardianos/service v1.2.1
 	github.com/northwindlight/cputemp v1.0.3
 	github.com/shirou/gopsutil/v4 v4.25.9
 	github.com/sirupsen/logrus v1.9.3

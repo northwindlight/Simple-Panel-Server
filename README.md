@@ -17,3 +17,34 @@ go build -o panel .
 自动创建 config.yaml。
 Windows：以管理员运行（读温度/频率）。
 Linux：普通用户即可。
+
+作为服务运行
+以管理员/root 权限执行：
+```shell
+# 安装
+./panel install
+
+# 启动/停止/重启
+./panel start
+./panel stop
+./panel restart
+
+# 卸载
+./panel uninstall
+
+# 状态
+# Windows: sc query SystemMonitor
+# Linux: systemctl status systemmonitor
+```
+
+配置
+编辑 config.yaml：
+```yaml
+yamlserver:
+  host: "0.0.0.0"
+  port: 8080
+web_server:
+  enabled: true
+  html_dir: "./html"
+  index_file: "index.html"
+  ```
