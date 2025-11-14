@@ -40,7 +40,7 @@ Linux：普通用户即可。
 配置
 编辑 config.yaml：
 ```yaml
-yamlserver:
+server:
   host: "0.0.0.0"
   port: 8080
 web_server:
