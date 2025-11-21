@@ -50,9 +50,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
+            padding: 20px 0 24px;        /* 上下间距加大，看起来更呼吸感 */
             border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;          /* 刷新按钮和连接状态之间的间距 */
         }
 
         .logo {
@@ -81,13 +87,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 18px;
             border-radius: 30px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 0, 0, 0.1);
             font-weight: 500;
             box-shadow: var(--shadow-sm);
+            min-width: 120px;
+            justify-content: center;
         }
 
         .status-dot {
@@ -493,28 +501,27 @@
         }
 
         .refresh-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-primary);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: var(--shadow-md);
-            z-index: 100;
-            font-size: 20px;
+            box-shadow: var(--shadow-sm);
+            font-size: 19px;
+            backdrop-filter: blur(12px);
         }
 
         .refresh-btn:hover {
-            background: var(--primary-light);
-            transform: rotate(360deg);
+            background: var(--primary);
+            color: white;
+            transform: rotate(360deg) scale(1.1);
+            box-shadow: var(--shadow-md);
         }
 
         /* 修复metric-card顶部横条问题 */
@@ -535,8 +542,6 @@
             transform: translateX(0);
         }
 
-        /* ------------------ 移动设备优化 ------------------ */
-        /* 针对高分辨率小屏设备（6英寸以下）的缩放 */
         @media (max-width: 800px) and (min-resolution: 200dpi) {
             body {
                 zoom: 150%;
@@ -598,15 +603,6 @@
                 font-size: 2em;
             }
             
-            /* 增大触摸目标 */
-            .refresh-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-                top: 15px;
-                right: 15px;
-            }
-            
             /* 减少内边距 */
             .overview-panel, 
             .metric-card, 
@@ -648,11 +644,6 @@
             }
             
             /* 增大触摸目标 */
-            .refresh-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
-            }
         }
 
         /* 针对折叠屏等特殊设备的优化 */

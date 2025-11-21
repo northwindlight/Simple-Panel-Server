@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 
-<title>mangopi</title>
-	<link rel="stylesheet" href="style.css?v=20250613">
+<title>服务器监控系统</title>
+	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -15,9 +15,15 @@
                 <i class="logo-icon fas fa-microchip"></i>
                 <h1 class="logo-text">服务器监控系统</h1>
             </div>
-            <div class="status-indicator">
-                <div class="status-dot" id="connectionStatus"></div>
-                <span id="connectionText">连接中...</span>
+            <div class="header-actions">
+                <button class="refresh-btn" id="refreshBtn" title="刷新所有数据">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+
+                <div class="status-indicator">
+                    <div class="status-dot" id="connectionStatus"></div>
+                    <span id="connectionText">连接中...</span>
+                </div>
             </div>
         </header>
         
@@ -173,9 +179,6 @@
         </main>
     </div>
     
-    <button class="refresh-btn" id="refreshBtn">
-        <i class="fas fa-sync-alt"></i>
-    </button>
-	<script src="script.js?v=202506134"></script>
+	<script src="script.js"></script>
 </body>
 </html>

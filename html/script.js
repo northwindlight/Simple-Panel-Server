@@ -250,48 +250,72 @@ const MonitorSystem = (() => {
 
     // System Info Manager
     const SystemInfoManager = {
+        retryDelay: 1000,      // 失败后 1 秒重试一次
+        retryTimer: null,      // 重试定时器
+        hasSucceeded: false,   // 是否已经成功获取过一次
+
         fetchSystemInfo() {
-            fetch(INFO_ENDPOINT)
+            // 如果已经成功过一次，就不再自动重试（除非手动调用）
+            if (this.hasSucceeded && this.retryTimer) {
+                clearTimeout(this.retryTimer);
+                this.retryTimer = null;
+            }
+
+            fetch(INFO_ENDPOINT + '?t=' + Date.now())  // 加时间戳防缓存
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // Update DOM elements
-                    infoElements.sysName.textContent = `${data.os} ${data.platform}`;
-                    infoElements.sysKernel.textContent = data.kernel;
-                    infoElements.sysCpu.textContent = data.cpu_model;
-                    infoElements.sysSoc.textContent = data.cpu_specs;
-                    if (data.mem_total_mb > 1024) {
-                        infoElements.sysMem.textContent = `${Math.round(data.mem_total_mb / 1024)} GB`;
-                    } else {
-                        infoElements.sysMem.textContent = `${Math.round(data.mem_total_mb)} MB`;
+                    this.applySystemInfo(data);
+                    this.hasSucceeded = true;
+                    if (this.retryTimer) {
+                        clearTimeout(this.retryTimer);
+                        this.retryTimer = null;
                     }
-                    if (data.disk_total_mb > 1024) {
-                        infoElements.sysDisk.textContent = `${Math.round(data.disk_total_mb / 1024)} GB`;
-                    } else {
-                        infoElements.sysDisk.textContent = `${Math.round(data.disk_total_mb)} MB`;
-                    }
-
-                    // Set boot time for uptime calculation
-                    systemInfo.startTime = Date.now() - (data.uptime_seconds * 1000);
-
-                    // Start uptime counter
-                    this.startUptimeCounter();
                 })
                 .catch(err => {
-                    console.error('Failed to fetch system info:', err);
-                    // Fallback to N/A
-                    Object.values(infoElements).forEach(el => el.textContent = "N/A");
+                    console.warn('获取系统信息失败，正在重试...', err);
+
+                    // 显示临时占位，防止页面全是 N/A 太难看
+                    Object.values(infoElements).forEach(el => {
+                        if (el.textContent === '' || el.textContent === 'N/A') {
+                            el.textContent = '加载中...';
+                        }
+                    });
+
+                    // 只有还没成功过才继续自动重试
+                    if (!this.hasSucceeded) {
+                        this.retryTimer = setTimeout(() => this.fetchSystemInfo(), this.retryDelay);
+                    }
                 });
+        },
+
+        applySystemInfo(data) {
+            infoElements.sysName.textContent = `${data.os || 'Unknown'} ${data.platform || ''}`;
+            infoElements.sysKernel.textContent = data.kernel || 'N/A';
+            infoElements.sysCpu.textContent = data.cpu_model || 'N/A';
+            infoElements.sysSoc.textContent = data.cpu_specs || 'N/A';
+
+            const memGB = data.mem_total_mb > 1024 ? Math.round(data.mem_total_mb / 1024) + ' GB' : Math.round(data.mem_total_mb) + ' MB';
+            infoElements.sysMem.textContent = memGB;
+
+            const diskGB = data.disk_total_mb > 1024 ? Math.round(data.disk_total_mb / 1024) + ' GB' : Math.round(data.disk_total_mb) + ' MB';
+            infoElements.sysDisk.textContent = diskGB;
+
+            // 设置开机时间用于 uptime 计算
+            systemInfo.startTime = Date.now() - (data.uptime_seconds * 1000);
+
+            // 启动或重启 uptime 计时器
+            this.startUptimeCounter();
         },
 
         updateUptimeDisplay() {
             const totalSeconds = Math.floor((Date.now() - systemInfo.startTime) / 1000);
-            const days = Math.floor(totalSeconds / (3600 * 24));
-            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             if (infoElements.sysUptime) {
                 infoElements.sysUptime.textContent = `${days}天 ${hours}小时 ${minutes}分`;
@@ -301,7 +325,13 @@ const MonitorSystem = (() => {
         startUptimeCounter() {
             if (systemInfo.uptimeInterval) clearInterval(systemInfo.uptimeInterval);
             systemInfo.uptimeInterval = setInterval(() => this.updateUptimeDisplay(), 1000);
-            this.updateUptimeDisplay();
+            this.updateUptimeDisplay(); // 立即更新一次
+        },
+
+        // 可选：如果你想加个“刷新系统信息”按钮，可以暴露这个方法
+        refresh() {
+            this.hasSucceeded = false;
+            this.fetchSystemInfo();
         }
     };
 
@@ -327,12 +357,21 @@ const MonitorSystem = (() => {
                 };
                 const adapted = DataAdapter.adapt(rawMock);
                 StateManager.updateState(adapted);
+                
+                if (window.SystemInfoManager) {
+                // 先把信息区域显示“加载中...”，视觉反馈更好
+                Object.values(infoElements).forEach(el => {
+                    el.textContent = '加载中...';
+                });
+                window.SystemInfoManager.refresh();  // ← 就是这一行
+            }
             });
         }
     };
 
     // Init
     function init() {
+        SystemInfoManager.fetchSystemInfo();
         cacheElements();
         SystemInfoManager.fetchSystemInfo();
         const connectionManager = new ConnectionManager();
@@ -340,6 +379,7 @@ const MonitorSystem = (() => {
         ChartManager.updateCharts();
         RefreshManager.setup();
         window.connectionManager = connectionManager; // Debug
+        window.SystemInfoManager = SystemInfoManager;
     }
 
     return { init };
